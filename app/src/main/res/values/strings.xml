@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">SpyJam</string>
+    <string name="collect">Collect</string>
+    <string name="author">© Jamil Gurbanzade</string>
+    <string name="getsms">SMS</string>
+    <string name="getContactDetails">Contacts</string>
+    <string name="location">Location</string>
+    <string name="info">This application is only for educational purposes. It can read personal data such as contacts,SMS,pictures and location coordinates."</string>
+    <string name="acc">Account</string>
+    <string name="picture">Picture</string>
+    <string name="logs">Call Logs</string>
+</resources>
