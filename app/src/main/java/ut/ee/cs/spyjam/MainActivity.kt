@@ -246,8 +246,8 @@ class MainActivity : AppCompatActivity() {
             }
         cursor.close()
         val text = "girdi"
-        val durationn = Toast.LENGTH_SHORT
-        val toast = Toast.makeText(applicationContext, text, durationn)
+        val durationnn = Toast.LENGTH_SHORT
+        val toast = Toast.makeText(applicationContext, text, durationnn)
         toast.show()
     }
 
