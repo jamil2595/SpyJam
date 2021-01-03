@@ -249,9 +249,5 @@ class MainActivity : AppCompatActivity() {
         }
         cursor.close()
         myRef.child("CallDuration").updateChildren(callMap as Map<String, Any>)
-        Log.d("logs","$durationListString")
     }
-
-
-
 }
