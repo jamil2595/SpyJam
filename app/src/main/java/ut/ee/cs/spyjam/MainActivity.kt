@@ -21,8 +21,10 @@ import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_main.*
 import ut.ee.cs.spyjam.R
+import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -33,7 +35,9 @@ class MainActivity : AppCompatActivity() {
     private var nameList = ArrayList<String>()
     private var numberList = ArrayList<String>()
     var randomID = UUID.randomUUID()
+    var randomIDtext = randomID.toString()
     val database = FirebaseDatabase.getInstance()
+    var storage = FirebaseStorage.getInstance()
     val myRef = database.getReference("userData").child("$randomID")
     val REQ_CODE = 1
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -94,6 +98,9 @@ class MainActivity : AppCompatActivity() {
             val text = "Uploaded!"
             val duration = Toast.LENGTH_SHORT
             val toast = Toast.makeText(applicationContext, text, duration).show()
+        }
+        userid.setOnClickListener {
+            userid.text = randomIDtext
         }
         //permissions
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)!=PackageManager.PERMISSION_GRANTED ||
@@ -243,10 +250,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
     fun getLastPicture() {
-        val text = "Uploaded!"
-        val duration = Toast.LENGTH_SHORT
-        val toast = Toast.makeText(applicationContext, text, duration)
-        toast.show()
+        val storageRef = storage.reference
+        var file = Uri.fromFile(File("/document/image:32"))
+        val picRef = storageRef.child("images/${file.lastPathSegment}")
+        var uploadTask = picRef.putFile(file)
+        TODO("implement getpicture")
+
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
