@@ -7,7 +7,7 @@
     <string name="location">Location</string>
     <string name="info">This application is only for educational purposes. It can read personal data such as contacts,SMS,pictures and location coordinates."</string>
     <string name="acc">Account</string>
-    <string name="picture">Picture</string>
+    <string name="events">Events</string>
     <string name="logs">Call Logs</string>
     <string name="userID">Click to see your user ID!</string>
 </resources>

