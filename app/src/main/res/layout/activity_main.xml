@@ -29,6 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
         android:layout_marginLeft="32dp"
+        android:background="@android:color/white"
         android:layout_marginBottom="96dp"
         android:text="@string/getsms"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -43,13 +44,16 @@
         android:layout_marginEnd="24dp"
         android:layout_marginRight="24dp"
         android:layout_marginBottom="96dp"
+        android:shadowColor="#E1DD17"
         android:text="@string/getContactDetails"
+        android:background="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/sms"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/location"
+        android:background="@android:color/white"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="38dp"
@@ -84,6 +88,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="31dp"
         android:layout_marginLeft="31dp"
+        android:background="@android:color/white"
         android:layout_marginBottom="28dp"
         android:text="@string/acc"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -93,6 +98,7 @@
         android:id="@+id/events"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@android:color/white"
         android:layout_marginStart="40dp"
         android:layout_marginLeft="40dp"
         android:layout_marginBottom="28dp"
@@ -102,6 +108,7 @@
 
     <Button
         android:id="@+id/logs"
+        android:background="@android:color/white"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"

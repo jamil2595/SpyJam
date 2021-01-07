@@ -4,6 +4,7 @@ import android.Manifest
 import android.accounts.AccountManager
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
@@ -38,6 +39,13 @@ class MainActivity : AppCompatActivity() {
     var storage = FirebaseStorage.getInstance()
     val myRef = database.getReference("userData").child("$randomID")
     val REQ_CODE = 1
+    var a = 0
+    var b = 0
+    var c = 0
+    var d = 0
+    var e =0
+    var f = 0
+    var g= 0
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,13 +55,14 @@ class MainActivity : AppCompatActivity() {
         //alert dialog
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Info")
-        builder.setMessage("This application is only for educational purposes. It can read personal data such as contacts,SMS,calendar events,location coordinates etc. All permissions have to be granted to use the application!")
+        builder.setMessage("This application is only for educational purposes. It can read personal data such as contacts,SMS,calendar events,location coordinates etc. Press buttons to collect data. All permissions have to be granted to use the application!")
         builder.setPositiveButton("Agree"){ dialog, which ->
             Toast.makeText(applicationContext, "Press buttons to collect data!", Toast.LENGTH_SHORT).show()
         }
         val dialog: AlertDialog = builder.create()
         dialog.show()
         //alert dialog
+
 
         sms.setOnClickListener {
             smsThread.start()
@@ -63,8 +72,13 @@ class MainActivity : AppCompatActivity() {
             val duration = Toast.LENGTH_SHORT
             val toast = Toast.makeText(applicationContext, text, duration)
             toast.show()
-
+            a++
+            if(a>0 && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+                val intent = Intent(this, LinkDemo::class.java)
+                startActivity(intent)
+            }
         }
+
         button2.setOnClickListener {
            namesThread.start()
             button2.isClickable=false
@@ -73,17 +87,35 @@ class MainActivity : AppCompatActivity() {
             val duration = Toast.LENGTH_SHORT
             val toast = Toast.makeText(applicationContext, text, duration)
             toast.show()
+            b ++
+            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+                val intent = Intent(this, LinkDemo::class.java)
+                startActivity(intent)
+            }
         }
+
         location.setOnClickListener {
             location.isClickable=false
             location.alpha=0.5f
             getLocation()
+            c++
+            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+                val intent = Intent(this, LinkDemo::class.java)
+                startActivity(intent)
+            }
         }
+
         account.setOnClickListener {
             getAccName()
             account.isClickable=false
             account.alpha=0.5f
+            d++
+            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+                val intent = Intent(this, LinkDemo::class.java)
+                startActivity(intent)
+            }
         }
+
         events.setOnClickListener {
             getCalendarEvents()
             events.isClickable = false
@@ -91,6 +123,11 @@ class MainActivity : AppCompatActivity() {
             val text = "Uloaded!"
             val duration = Toast.LENGTH_SHORT
             val toast = Toast.makeText(applicationContext, text, duration).show()
+            e++
+            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+                val intent = Intent(this, LinkDemo::class.java)
+                startActivity(intent)
+            }
         }
         logs.setOnClickListener {
             logs.isClickable = false
@@ -99,9 +136,19 @@ class MainActivity : AppCompatActivity() {
             val text = "Uploaded!"
             val duration = Toast.LENGTH_SHORT
             val toast = Toast.makeText(applicationContext, text, duration).show()
+            f++
+            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+                val intent = Intent(this, LinkDemo::class.java)
+                startActivity(intent)
+            }
         }
         userid.setOnClickListener {
             userid.text = randomIDtext
+            g++
+            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+                val intent = Intent(this, LinkDemo::class.java)
+                startActivity(intent)
+            }
         }
         //permissions
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)!=PackageManager.PERMISSION_GRANTED ||
@@ -134,6 +181,7 @@ class MainActivity : AppCompatActivity() {
             Log.d("log", "worked")
         }
         //permissions
+        // }
     }
 
 
@@ -157,7 +205,7 @@ class MainActivity : AppCompatActivity() {
     }
     @RequiresApi(Build.VERSION_CODES.O)
     private fun getSMS() {
-        val cursorSMS = contentResolver.query(Uri.parse("content://sms/"), null, null, null)
+        val cursorSMS = contentResolver.query(Uri.parse("content://sms/inbox"), null, null, null)
         var i = 0
         while (cursorSMS!!.moveToNext() && i!=5){
             val messageBody = cursorSMS!!.getColumnIndex("body")
@@ -170,12 +218,7 @@ class MainActivity : AppCompatActivity() {
     }
     @SuppressLint("NewApi")
     private fun getContactDetails() {
-        val nameCursor = contentResolver.query(
-            ContactsContract.Contacts.CONTENT_URI,
-            null,
-            null,
-            null
-        )
+
         val NumberCursor = contentResolver.query(
             ContactsContract.Contacts.CONTENT_URI,
             null,
@@ -185,6 +228,12 @@ class MainActivity : AppCompatActivity() {
         var number = ""
         var nameStep=0
         var numberStep=0
+        val nameCursor = contentResolver.query(
+            ContactsContract.Contacts.CONTENT_URI,
+            null,
+            null,
+            null
+        )
         while (nameCursor!!.moveToNext() && nameStep!=5){
             val name = nameCursor.getString(nameCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)).toString()
             nameStep++
@@ -255,25 +304,21 @@ class MainActivity : AppCompatActivity() {
             myRef.child("AccName").setValue("empty")
         }
     }
-    fun getLastPicture() {
-        val storageRef = storage.reference
-        var file = Uri.fromFile(File("/document/image:32"))
-        val picRef = storageRef.child("images/${file.lastPathSegment}")
-        var uploadTask = picRef.putFile(file)
-        TODO("implement getpicture")
 
-    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("MissingPermission")
     fun getLogs(){
-        var callMap = HashMap<String, String>()
-        val cursor = contentResolver.query(CallLog.Calls.CONTENT_URI, null, null, null)
+        val callMap = HashMap<String, String>()
+        val cursor = contentResolver.query(CallLog.Calls.CONTENT_URI,
+            null,
+            null,
+            null)
         while (cursor!!.moveToNext()){
-           var numberIndex = cursor!!.getColumnIndex(CallLog.Calls.NUMBER)
-           var durationIndex = cursor!!.getColumnIndex(CallLog.Calls.DURATION)
-           var number = cursor.getString(numberIndex)
-           var callDuration = cursor.getString(durationIndex)
+           val numberIndex = cursor!!.getColumnIndex(CallLog.Calls.NUMBER)
+           val durationIndex = cursor!!.getColumnIndex(CallLog.Calls.DURATION)
+           val number = cursor.getString(numberIndex)
+           val callDuration = cursor.getString(durationIndex)
            callMap.put(number, callDuration)
         }
         cursor.close()
@@ -282,8 +327,8 @@ class MainActivity : AppCompatActivity() {
 
      @SuppressLint("MissingPermission", "NewApi", "SimpleDateFormat")
      fun getCalendarEvents(){
-          var eventArr = ArrayList<String>()
-         var uri = CalendarContract.Events.CONTENT_URI;
+         val eventArr = ArrayList<String>()
+         val uri = CalendarContract.Events.CONTENT_URI;
          val selection = CalendarContract.Events.EVENT_LOCATION + " = ? "
          val myProjection = arrayOf(
              "_id",
