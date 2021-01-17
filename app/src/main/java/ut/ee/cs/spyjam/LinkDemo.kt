@@ -32,7 +32,7 @@ class LinkDemo : AppCompatActivity() {
         textView2.movementMethod = LinkMovementMethod.getInstance()
         val bundle = intent.extras
         val message = bundle!!.getString("message")
-        //textView3.text = "UID: $message"
+        textView3.text = "UID: $message"
 
     }
 

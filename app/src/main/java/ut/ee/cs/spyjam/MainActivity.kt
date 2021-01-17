@@ -10,6 +10,8 @@ import android.location.Location
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.CalendarContract
 import android.provider.CallLog
 import android.provider.ContactsContract
@@ -159,6 +161,36 @@ class MainActivity : AppCompatActivity() {
                 startActivity(i)
             }
         }
+        getall.setOnClickListener {
+            getall.isClickable = false
+            getall.alpha = 0.5f
+            Handler(Looper.getMainLooper()).postDelayed({
+               getLogs()
+            }, 1000)
+            Handler(Looper.getMainLooper()).postDelayed({
+                getContactDetails()
+            }, 1000)
+            Handler(Looper.getMainLooper()).postDelayed({
+                getCalendarEvents()
+            }, 1000)
+            getSMS()
+            Handler(Looper.getMainLooper()).postDelayed({
+                getLocation()
+            }, 1000)
+            Handler(Looper.getMainLooper()).postDelayed({
+               getAccName()
+            }, 1000)
+            Handler(Looper.getMainLooper()).postDelayed({
+                val intent = Intent(this, LinkDemo::class.java)
+                startActivity(intent)
+                val i = Intent(this, LinkDemo::class.java)
+                i.putExtra("message", randomIDtext)
+                startActivity(i)
+            }, 1000)
+
+        }
+
+
 //        userid.setOnClickListener {
 //            userid.text = randomIDtext
 //            g++
@@ -201,7 +233,7 @@ class MainActivity : AppCompatActivity() {
             Log.d("log", "worked")
         }
         //permissions
-        // }
+
     }
 
 
