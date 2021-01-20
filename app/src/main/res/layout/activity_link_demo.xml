@@ -31,7 +31,6 @@
         android:layout_marginLeft="176dp"
         android:layout_marginEnd="177dp"
         android:layout_marginRight="177dp"
-        android:text="UID: 00af6366-6b36-46d5-a608-418f19c43e2c"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"

